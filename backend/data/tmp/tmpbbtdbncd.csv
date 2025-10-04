@@ -1,0 +1,14 @@
+order_id,region,product,quantity,unit_price,order_date
+1001,West,Alpha,3,19.99,2025-08-01
+1002,East,Beta,5,7.50,2025-08-02
+1003,West,Alpha,1,21.00,2025-08-03
+1004,South,Gamma,10,3.25,2025-08-03
+1005,North,Alpha,2,18.50,2025-08-04
+1006,East,Gamma,4,3.75,2025-08-04
+1007,West,Beta,7,8.25,2025-08-05
+1008,South,Alpha,6,20.00,2025-08-05
+1009,North,Beta,9,7.95,2025-08-06
+1010,East,Alpha,2,19.50,2025-08-06
+1011,West,Gamma,8,3.40,2025-08-07
+1012,South,Beta,3,8.10,2025-08-07
+
