@@ -12,6 +12,16 @@ export type HistoryNode = {
   created_at?: number
 }
 
+export type NodeDetail = {
+  node_id: string
+  op_type: string
+  op_params: any
+  parent_node_ids: string[]
+  primary_artifact_id?: string | null
+  created_at: number
+  session_id: string
+}
+
 // Small helper: build URLs safely
 function q(params: Record<string, string | number | undefined>) {
   const usp = new URLSearchParams()
@@ -127,4 +137,10 @@ export async function me() {
 
 export async function logout() {
   await fetch(`${API_BASE}/v1/auth/logout`, { method: 'POST', credentials: 'include' })
+}
+
+export async function getNode(nodeId: string): Promise<NodeDetail> {
+  const r = await fetch(`${API_BASE}/v1/nodes/${encodeURIComponent(nodeId)}`)
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
 }

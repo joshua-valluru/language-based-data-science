@@ -9,6 +9,7 @@ from app.api.history import router as history_router
 from app.api.checkout import router as checkout_router
 from app.api.artifacts import router as artifacts_router
 from app.api.auth import router as auth_router
+from app.api.nodes import router as nodes_router
 
 app = FastAPI(title="AIDO Backend", version="0.1.0")
 
@@ -31,3 +32,4 @@ app.include_router(history_router)
 app.include_router(checkout_router)
 app.include_router(artifacts_router)
 app.include_router(auth_router)
+app.include_router(nodes_router)
