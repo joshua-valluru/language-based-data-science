@@ -144,7 +144,7 @@ export default function HistoryDag({ sessionId, currentNodeId, updateKey, onSele
         .muted { color: #A1AEC6; padding: 10px 12px; }
       `}</style>
 
-      <div className="dag-head">History</div>
+      <div className="dag-head">Version Tree</div>
       <div className="dag-body">
         {error && <div className="muted">⚠️ {error}</div>}
         {!error && loading && <div className="muted">Loading…</div>}
