@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      # backend expects these paths:
+      DATA_DIR: /data
+      ARTIFACTS_DIR: /data/artifacts
+      META_DB: /data/meta/meta.db
+
+      # auth + llm
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+
+    # single volume for everything under /data (meta, artifacts, tmp)
+    volumes:
+      - aido_data:/data
+
+    expose:
+      - "8000"
+    networks:
+      - aido
+
+    # make sure dirs exist before starting uvicorn
+    command: >
+      sh -c "mkdir -p /data/meta /data/artifacts /data/tmp &&
+             exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - aido
+
+volumes:
+  aido_data:
+
+networks:
+  aido:
