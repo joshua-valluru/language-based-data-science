@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 from uuid import uuid4
-import matplotlib
-matplotlib.use("Agg")  # headless
+import matplotlib as mpl
+mpl.use("Agg")  # headless
 import matplotlib.pyplot as plt
 import duckdb
 import pandas as pd
@@ -18,6 +18,48 @@ from app.infra.meta import (
 
 router = APIRouter(prefix="/v1", tags=["plot"])
 art = ArtifactStore()
+
+# ---- AIDO dark theme palette (kept subtle to match your UI) ----
+DARK_BG  = "#0b1014"   # page background
+PANEL_BG = "#10161b"   # card/panel background
+FG       = "#E6EEF9"   # primary text
+MUTED    = "#B8C2D9"   # tick/secondary text
+GRID     = "#2b3844"   # grid/spine
+ACCENT   = "#1bd8a0"   # brand accent
+EDGE     = "#23303b"   # bar/marker edges
+
+# Global defaults (safe for headless)
+mpl.rcParams.update({
+    "figure.facecolor": DARK_BG,
+    "savefig.facecolor": DARK_BG,
+    "axes.facecolor": PANEL_BG,
+    "axes.edgecolor": GRID,
+    "axes.labelcolor": FG,
+    "text.color": FG,
+    "xtick.color": MUTED,
+    "ytick.color": MUTED,
+    "axes.grid": False,
+    "grid.color": GRID,
+    "grid.linewidth": 0.8,
+    "grid.alpha": 0.5,
+    "legend.frameon": False,
+})
+
+def style_ax(ax):
+    """Apply AIDO dark style to an axes."""
+    # Panel/background cohesion
+    ax.set_facecolor(PANEL_BG)
+    ax.figure.set_facecolor(DARK_BG)
+
+    # Clean spines
+    for spine in ax.spines.values():
+        spine.set_color(GRID)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    # Ticks/text sizes & color already covered by rcParams, just ensure readable
+    ax.tick_params(labelsize=10)
+    ax.title.set_fontweight("bold")
 
 @router.post("/plot", response_model=PlotResponse)
 def plot_from_artifact(req: PlotRequest):
@@ -38,7 +80,14 @@ def plot_from_artifact(req: PlotRequest):
     x = req.x; y = req.y
 
     # 3) minimal plotting logic
-    fig = plt.figure()
+
+    # choose a friendly title
+    if req.kind == "bar":
+        plot_title = f"{y} by {x}"
+    else:
+        plot_title = f"{y} vs {x}"
+
+    fig = plt.figure(figsize=(8, 4.6), dpi=144)
     ax = fig.add_subplot(111)
 
     if req.kind == "bar":
@@ -60,6 +109,7 @@ def plot_from_artifact(req: PlotRequest):
         ax.scatter(df[x], df[y])
         ax.set_xlabel(x); ax.set_ylabel(y); ax.set_title(f"{y} vs {x}")
 
+    ax.set_title(plot_title)
     fig.tight_layout()
 
     # 4) write PNG to temp, move into artifact store
@@ -101,4 +151,5 @@ def plot_from_artifact(req: PlotRequest):
             artifact_id=a.artifact_id, kind=a.kind, format=a.format, uri=a.uri,
             bytes=a.bytes, rows=a.rows, cols=a.cols
         ),
+        title=plot_title,
     )

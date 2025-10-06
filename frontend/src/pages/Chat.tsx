@@ -7,7 +7,7 @@ import NiceTable from '../components/NiceTable'
 
 type Block =
   | { type: 'table'; columns: string[]; rows: any[]; artifactId: string }
-  | { type: 'image'; artifactId: string }
+  | { type: 'image'; artifactId: string; title?: string }
 
 type Message = { role: 'user' | 'assistant'; text: string; block?: Block }
 
@@ -301,14 +301,15 @@ export default function Chat() {
 
       if (res?.intent?.type === 'plot') {
         const a = res.result.artifact
+        const title = (res?.result?.title && String(res.result.title)) || 'Chart'
         setMessages(m => [...m, {
           role: 'assistant',
           text: 'Here’s your chart.',
-          block: { type: 'image', artifactId: a.artifact_id }
+          block: { type: 'image', artifactId: a.artifact_id, title }
         }])
         setUpdateKey(k => k + 1)
         return
-      }
+      }      
 
       setMessages(m => [...m, { role: 'assistant', text: 'I created a result, but cannot display it yet.' }])
     } catch (e: any) {
@@ -647,6 +648,50 @@ export default function Chat() {
           color: #0a0f13; border: 1px solid rgba(255,255,255,0.16); cursor: pointer; font-weight: 700;
         }
         .send-btn:hover{ filter: brightness(1.03); }
+        /* Plot card styled like NiceTable */
+        .plot-card{
+          width: 100%;
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          background: rgba(255,255,255,0.03);
+          overflow: hidden;
+        }
+        .plot-head{
+          display:flex; align-items:center; justify-content:space-between;
+          gap:10px; padding:10px 12px;
+          border-bottom:1px solid var(--line);
+          background: rgba(255,255,255,0.06);
+          backdrop-filter: blur(4px);
+        }
+        .plot-title{
+          font-weight:700; letter-spacing:.2px; opacity:.95; font-size:13px;
+          white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .plot-actions{ display:flex; gap:8px; align-items:center; }
+        .plot-btn{
+          appearance:none; padding:6px 10px; border-radius:10px;
+          border:1px solid var(--line); background: rgba(255,255,255,0.10);
+          color:#fff; font-weight:800; font-size:12px; cursor:pointer; text-decoration:none;
+          display:inline-flex; align-items:center;
+        }
+        .plot-btn:hover{ border-color: var(--ring); }
+
+        .plot-wrap{
+          width:100%;
+          max-height: 420px;
+          display:flex; align-items:center; justify-content:center;
+          background: rgba(255,255,255,0.03);
+        }
+        .plot-wrap img{
+          display:block; max-width:100%; max-height:420px; object-fit: contain;
+        }
+        .plot-foot{
+          padding:8px 12px;
+          border-top:1px solid rgba(255,255,255,0.22);
+          background: rgba(7,10,13,0.88);
+          font-size:11px; line-height:1.3;
+          color:#B8C2D9; font-weight:700;
+        }
       `}</style>
 
       <div className="frame">
@@ -729,20 +774,31 @@ export default function Chat() {
                                 maxHeight={360}
                               />
                             )}
-
                             {m.block?.type === 'image' && (
-                              <div className="block">
-                                <div className="plot">
+                              <div className="plot-card">
+                                <div className="plot-head">
+                                  <div className="plot-title">{m.block.title || 'Chart'}</div>
+                                  <div className="plot-actions">
+                                    <a
+                                      className="plot-btn"
+                                      href={artifactUrl(m.block.artifactId)}
+                                      download={`plot-${m.block.artifactId.slice(0,8)}.png`}
+                                    >
+                                      Download
+                                    </a>
+                                  </div>
+                                </div>
+
+                                <div className="plot-wrap">
                                   <img
                                     src={artifactUrl(m.block.artifactId)}
-                                    alt="plot"
+                                    alt={m.block.title || 'plot'}
                                     onLoad={() => { if (isAutoScroll.current) scrollToEnd('auto') }}
                                   />
                                 </div>
-                                <div style={{ padding: '8px 10px', borderTop: '1px solid var(--line)' }}>
-                                  <span className="muted" style={{ fontSize: 12 }}>
-                                    Artifact:&nbsp;<span className="idmono">{m.block.artifactId}</span>
-                                  </span>
+
+                                <div className="plot-foot">
+                                  Artifact — <span className="idmono">{m.block.artifactId}</span>
                                 </div>
                               </div>
                             )}

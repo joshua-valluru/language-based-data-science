@@ -52,6 +52,7 @@ class PlotResponse(BaseModel):
     parent_node_id: str | None = None
     node: NodeOut
     artifact: ArtifactOut
+    title: str
 
 class AskRequest(BaseModel):
     session_id: str
