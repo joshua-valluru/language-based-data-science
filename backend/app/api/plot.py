@@ -129,7 +129,7 @@ def plot_from_artifact(req: PlotRequest):
         bytes_=final_png.stat().st_size,
         rows=0, cols=0,
     )
-    parent = get_node_by_artifact(req.artifact_id)
+    parent = get_node_by_artifact(req.artifact_id, req.session_id)
     parent_id = parent.node_id if parent else None
     n = insert_node(
         session_id=req.session_id,
