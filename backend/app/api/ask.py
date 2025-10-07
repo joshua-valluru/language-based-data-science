@@ -73,6 +73,18 @@ def ask(req: AskRequest):
         ))
         return AskResponse(intent=plan, result=result.model_dump())
 
+    if t == "report":
+        title = (plan.get("title") or "Report").strip()
+        html = (plan.get("html") or "<p>No content.</p>").strip()
+        return AskResponse(
+            intent={"type": "report"},
+            result={
+                "title": title,
+                "html": html,
+                "artifact": {"artifact_id": req.artifact_id}  # show seed id in footer
+            },
+        )
+    
     if t == "plot":
         spec = plan.get("plot") or {}
         kind, x, y = spec.get("kind"), spec.get("x"), spec.get("y")

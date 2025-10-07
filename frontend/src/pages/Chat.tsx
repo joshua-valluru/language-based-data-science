@@ -4,10 +4,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { ask, artifactUrl, checkout, uploadCsv, logout, me } from '../lib/api'
 import HistoryDag from '../components/HistoryDag'
 import NiceTable from '../components/NiceTable'
+import NiceReport from '../components/NiceReport'
 
 type Block =
   | { type: 'table'; columns: string[]; rows: any[]; artifactId: string }
   | { type: 'image'; artifactId: string; title?: string }
+  | { type: 'report'; html: string; artifactId?: string; title?: string }
 
 type Message = { role: 'user' | 'assistant'; text: string; block?: Block }
 
@@ -284,6 +286,18 @@ export default function Chat() {
         setUpdateKey(k => k + 1)
         return
       }
+
+      if (res?.intent?.type === 'report') {
+        const html = res?.result?.html || '<p>No content.</p>'
+        const a = res?.result?.artifact || {}
+        setMessages(m => [...m, {
+          role: 'assistant',
+          text: "Here’s your report.",
+          block: { type: 'report', html, artifactId: a.artifact_id, title: res?.result?.title }
+        }])
+        setUpdateKey(k => k + 1)
+        return
+      }      
 
       if (res?.intent?.type === 'sql') {
         const a = res.result.artifact
@@ -765,7 +779,13 @@ export default function Chat() {
                         {m.role === 'assistant' ? (
                           <>
                             <div className="asst-text">{m.text}</div>
-
+                            {m.block?.type === 'report' && (
+                              <NiceReport
+                                html={m.block.html}
+                                artifactId={m.block.artifactId}
+                                title={m.block.title || 'Report'}
+                              />
+                            )}
                             {m.block?.type === 'table' && (
                               <NiceTable
                                 columns={m.block.columns}
