@@ -1,5 +1,5 @@
 // frontend/src/components/NiceReport.tsx
-import React, { useMemo, useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 
 type Props = {
   title?: string
@@ -8,26 +8,8 @@ type Props = {
 }
 
 export default function NiceReport({ title = 'Report', html, artifactId }: Props) {
-  const [copied, setCopied] = useState(false)
-
   // --- Simple sanitizer for the limited tag set we expect from the LLM ---
   const safeHtml = useMemo(() => sanitizeHtml(html), [html])
-
-  async function handleCopy() {
-    try {
-      // copy text-only for predictable results
-      const tmpDiv = document.createElement('div')
-      tmpDiv.innerHTML = safeHtml
-      const text = tmpDiv.innerText
-      await navigator.clipboard.writeText(text)
-      setCopied(true)
-    } catch {}
-  }
-  useEffect(() => {
-    if (!copied) return
-    const t = setTimeout(() => setCopied(false), 2000)
-    return () => clearTimeout(t)
-  }, [copied])
 
   function handleDownloadHtml() {
     const blob = new Blob(
@@ -198,18 +180,6 @@ export default function NiceReport({ title = 'Report', html, artifactId }: Props
       <div className="nr-head">
         <div className="nr-title">{title}</div>
         <div className="nr-actions">
-          <button className="nr-btn" onClick={handleCopy} disabled={copied} title={copied ? 'Copied' : 'Copy'}>
-            {copied ? (
-              <>
-                <svg className="nr-check" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M16.667 5 7.917 13.75 3.333 9.167" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Copied
-              </>
-            ) : (
-              <>Copy</>
-            )}
-          </button>
           <button className="nr-btn" onClick={handleDownloadHtml} title="Download HTML">Download</button>
         </div>
       </div>

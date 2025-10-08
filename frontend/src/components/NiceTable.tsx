@@ -1,5 +1,5 @@
 // frontend/src/components/NiceTable.tsx
-import React, { useMemo, useState, useEffect, useRef, useLayoutEffect } from 'react'
+import React, { useMemo, useRef, useLayoutEffect } from 'react'
 
 type Props = {
   columns: string[]
@@ -35,7 +35,6 @@ function toCsv(columns: string[], rows: any[]) {
 
 export default function NiceTable({ columns, rows, artifactId, caption, maxHeight = 360 }: Props) {
   const csv = useMemo(() => toCsv(columns, rows), [columns, rows])
-  const [copied, setCopied] = useState(false)
 
   // Decide per-column alignment by sampling values
   const isNumericCol = useMemo(() => {
@@ -68,23 +67,13 @@ export default function NiceTable({ columns, rows, artifactId, caption, maxHeigh
     normalized.startsWith("here’s your table") || normalized.startsWith("here's your table")
   const desc = !caption || looksLikeDefaultTitle ? autoDesc : caption
 
-  // Copy → Copied ✓ (auto-reset)
-  async function copyCsv() {
-    try { await navigator.clipboard.writeText(csv); setCopied(true) } catch {}
-  }
-  useEffect(() => {
-    if (!copied) return
-    const t = setTimeout(() => setCopied(false), 2000)
-    return () => clearTimeout(t)
-  }, [copied])
-
   // --- Standardize visible width to match surrounding content ---
   const COL_MIN_PX = 180
   const intrinsicMin = Math.max(columns.length * COL_MIN_PX, 0)
 
   // Measure the wrapper width and keep it updated (resizes, sidebar drag, etc.)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const [wrapWidth, setWrapWidth] = useState(0)
+  const [wrapWidth, setWrapWidth] = React.useState(0)
 
   useLayoutEffect(() => {
     const el = wrapRef.current
@@ -92,12 +81,10 @@ export default function NiceTable({ columns, rows, artifactId, caption, maxHeigh
     const ro = new ResizeObserver(entries => {
       for (const entry of entries) {
         const cr = entry.contentRect
-        // Use content width so we align with text/bubble width precisely
         setWrapWidth(Math.max(0, Math.floor(cr.width)))
       }
     })
     ro.observe(el)
-    // initialize immediately
     setWrapWidth(el.getBoundingClientRect().width)
     return () => ro.disconnect()
   }, [])
@@ -139,11 +126,9 @@ export default function NiceTable({ columns, rows, artifactId, caption, maxHeigh
           appearance:none; padding:6px 10px; border-radius:10px;
           border:1px solid var(--line); background: rgba(255,255,255,0.10);
           color:#fff; font-weight:800; font-size:12px; cursor:pointer;
-          display:inline-flex; align-items:center; gap:8px;
+          display:inline-flex; align-items:center; gap:8px; text-decoration:none;
         }
         .nt-btn:hover{ border-color: var(--ring); }
-        .nt-btn:disabled{ opacity:.7; cursor:default; }
-        .nt-check{ width:14px; height:14px; flex:0 0 14px; }
 
         .nt-wrap{
           /* dynamic max-height applied inline */
@@ -204,24 +189,6 @@ export default function NiceTable({ columns, rows, artifactId, caption, maxHeigh
         <div className="nt-actions">
           <button
             className="nt-btn"
-            onClick={copyCsv}
-            disabled={copied}
-            title={copied ? 'Copied' : 'Copy CSV'}
-          >
-            {copied ? (
-              <>
-                <svg className="nt-check" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M16.667 5 7.917 13.75 3.333 9.167" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                Copied
-              </>
-            ) : (
-              <>Copy</>
-            )}
-          </button>
-
-          <button
-            className="nt-btn"
             onClick={() => {
               const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
               const url = URL.createObjectURL(blob)
@@ -261,21 +228,21 @@ export default function NiceTable({ columns, rows, artifactId, caption, maxHeigh
             </tr>
           </thead>
 
-          <tbody>
-            {rows.map((r, ri) => (
-              <tr key={ri}>
-                {columns.map((c, i) => {
-                  const raw = (r as any)[c]
-                  const display = toCell(raw)
-                  return (
-                    <td key={c} className={alignClass(i)} title={String(raw ?? '')}>
-                      {display}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
+        <tbody>
+          {rows.map((r, ri) => (
+            <tr key={ri}>
+              {columns.map((c, i) => {
+                const raw = (r as any)[c]
+                const display = toCell(raw)
+                return (
+                  <td key={c} className={alignClass(i)} title={String(raw ?? '')}>
+                    {display}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
         </table>
       </div>
 

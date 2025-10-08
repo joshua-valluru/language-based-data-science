@@ -713,7 +713,6 @@ export default function Chat() {
         <div className="topbar">
           <div className="brand"><div className="dot" /> GenBio AIDO</div>
           <div className="userbox">
-            {userLabel && <span className="userlabel">@{userLabel}</span>}
             <button className="logout" onClick={onLogout}>Logout</button>
           </div>
         </div>
