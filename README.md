@@ -1,4 +1,4 @@
-# GenBio AIDO
+# Language-based Data Science Platform
 
 Lightweight, fast, and opinionated **chat + data** workbench. Upload a CSV, query it in plain English, and get back **tables**, **plots**, or a short **report**. Every step is tracked in a per-session **DAG** so you can see lineage and switch context easily.
 
